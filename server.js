@@ -7,33 +7,45 @@ import expenseRoutes from "./routes/expenseRoutes.js";
 dotenv.config();
 const app = express();
 
-// ✅ Allow specific origin from .env (important for Render + Vercel)
-const allowedOrigin = process.env.CORS_ORIGIN || "*";
+// ✅ Global middlewares
+app.use(express.json());
+
+// ✅ CORS setup — allow your Vercel frontend and localhost
+const allowedOrigins = [
+  process.env.CORS_ORIGIN, // your Vercel URL from Render env
+  "http://localhost:5173", // local development
+];
+
 app.use(
   cors({
-    origin: process.env.CORS_ORIGIN || "*",
+    origin: function (origin, callback) {
+      if (!origin || allowedOrigins.includes(origin)) {
+        callback(null, true);
+      } else {
+        console.warn(`🚫 CORS blocked for origin: ${origin}`);
+        callback(new Error("Not allowed by CORS"));
+      }
+    },
     methods: ["GET", "POST", "PUT", "DELETE"],
     credentials: true,
   })
 );
 
-app.use(express.json());
-
 // ✅ MongoDB Connection
 mongoose
-  .connect(process.env.MONGO_URI, {
-    useNewUrlParser: true,
-    useUnifiedTopology: true,
-  })
+  .connect(process.env.MONGO_URI)
   .then(() => console.log("✅ MongoDB Connected"))
   .catch((err) => console.error("❌ Mongo Error:", err.message));
 
 // ✅ Routes
 app.use("/api/expenses", expenseRoutes);
 
-// ✅ Root test route
+// ✅ Root route (health check)
 app.get("/", (req, res) => {
-  res.send("Backend is running successfully 🚀");
+  res.json({
+    message: "Backend is running successfully 🚀",
+    routes: ["/api/expenses"],
+  });
 });
 
 // ✅ Start server

@@ -3,47 +3,106 @@ import Expense from "../models/Expense.js";
 
 const router = express.Router();
 
-// Get all expenses
+/**
+ * ✅ GET all expenses
+ * Always returns an array, even if empty.
+ */
 router.get("/", async (req, res) => {
   try {
-    const expenses = await Expense.find();
-    res.json(expenses);
+    const expenses = await Expense.find().sort({ date: -1 });
+    return res.status(200).json(Array.isArray(expenses) ? expenses : []);
   } catch (err) {
-    res.status(500).json({ message: err.message });
-  }
-});
-
-// Update expense
-router.put("/:id", async (req, res) => {
-  try {
-    const updated = await Expense.findByIdAndUpdate(req.params.id, req.body, {
-      new: true,
+    console.error("❌ Error fetching expenses:", err.message);
+    return res.status(500).json({
+      success: false,
+      message: "Server error while fetching expenses.",
     });
-    res.json(updated);
-  } catch (err) {
-    res.status(400).json({ message: err.message });
   }
 });
 
-
-// Add expense
+/**
+ * ✅ POST - Add new expense
+ * Validates required fields.
+ */
 router.post("/", async (req, res) => {
   try {
-    const expense = new Expense(req.body);
-    await expense.save();
-    res.status(201).json(expense);
+    const { title, amount, category, date } = req.body;
+
+    if (!title || !amount || !category || !date) {
+      return res
+        .status(400)
+        .json({ success: false, message: "All fields are required." });
+    }
+
+    const expense = new Expense({
+      title,
+      amount: Number(amount),
+      category,
+      date: new Date(date),
+    });
+
+    const savedExpense = await expense.save();
+    return res.status(201).json(savedExpense);
   } catch (err) {
-    res.status(400).json({ message: err.message });
+    console.error("❌ Error adding expense:", err.message);
+    return res.status(400).json({
+      success: false,
+      message: "Failed to add expense.",
+      error: err.message,
+    });
   }
 });
 
-// Delete expense
+/**
+ * ✅ PUT - Update expense
+ * Validates ID and updates fields.
+ */
+router.put("/:id", async (req, res) => {
+  try {
+    const { id } = req.params;
+    const updatedExpense = await Expense.findByIdAndUpdate(id, req.body, {
+      new: true,
+      runValidators: true,
+    });
+
+    if (!updatedExpense) {
+      return res
+        .status(404)
+        .json({ success: false, message: "Expense not found." });
+    }
+
+    return res.status(200).json(updatedExpense);
+  } catch (err) {
+    console.error("❌ Error updating expense:", err.message);
+    return res.status(400).json({
+      success: false,
+      message: "Failed to update expense.",
+      error: err.message,
+    });
+  }
+});
+
+/**
+ * ✅ DELETE - Remove expense
+ */
 router.delete("/:id", async (req, res) => {
   try {
-    await Expense.findByIdAndDelete(req.params.id);
-    res.json({ message: "Expense deleted" });
+    const deletedExpense = await Expense.findByIdAndDelete(req.params.id);
+
+    if (!deletedExpense) {
+      return res
+        .status(404)
+        .json({ success: false, message: "Expense not found." });
+    }
+
+    return res.status(200).json({ success: true, message: "Expense deleted." });
   } catch (err) {
-    res.status(500).json({ message: err.message });
+    console.error("❌ Error deleting expense:", err.message);
+    return res.status(500).json({
+      success: false,
+      message: "Failed to delete expense.",
+      error: err.message,
+    });
   }
 });
 
