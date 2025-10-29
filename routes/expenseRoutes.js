@@ -3,10 +3,6 @@ import Expense from "../models/Expense.js";
 
 const router = express.Router();
 
-/**
- * ✅ GET all expenses
- * Always returns an array, even if empty.
- */
 router.get("/", async (req, res) => {
   try {
     const expenses = await Expense.find().sort({ date: -1 });
@@ -20,10 +16,7 @@ router.get("/", async (req, res) => {
   }
 });
 
-/**
- * ✅ POST - Add new expense
- * Validates required fields.
- */
+
 router.post("/", async (req, res) => {
   try {
     const { title, amount, category, date } = req.body;
@@ -53,10 +46,7 @@ router.post("/", async (req, res) => {
   }
 });
 
-/**
- * ✅ PUT - Update expense
- * Validates ID and updates fields.
- */
+
 router.put("/:id", async (req, res) => {
   try {
     const { id } = req.params;
@@ -82,9 +72,7 @@ router.put("/:id", async (req, res) => {
   }
 });
 
-/**
- * ✅ DELETE - Remove expense
- */
+
 router.delete("/:id", async (req, res) => {
   try {
     const deletedExpense = await Expense.findByIdAndDelete(req.params.id);
