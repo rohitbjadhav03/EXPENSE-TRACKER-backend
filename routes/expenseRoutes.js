@@ -16,8 +16,9 @@ router.get("/", async (req, res) => {
   }
 });
 
-
 router.post("/", async (req, res) => {
+  console.log("BODY IN /api/expenses ===>", req.body);  // DEBUG LOG
+
   try {
     const { title, amount, category, date } = req.body;
 
@@ -46,7 +47,6 @@ router.post("/", async (req, res) => {
   }
 });
 
-
 router.put("/:id", async (req, res) => {
   try {
     const { id } = req.params;
@@ -71,7 +71,6 @@ router.put("/:id", async (req, res) => {
     });
   }
 });
-
 
 router.delete("/:id", async (req, res) => {
   try {
