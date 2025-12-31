@@ -7,23 +7,14 @@ import expenseRoutes from "./routes/expenseRoutes.js";
 dotenv.config();
 const app = express();
 
+// Body parsers FIRST
 app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 
-const allowedOrigins = [
-  process.env.CORS_ORIGIN, 
-  "http://localhost:5173", 
-];
-
+// Allow all origins temporarily
 app.use(
   cors({
-    origin: function (origin, callback) {
-      if (!origin || allowedOrigins.includes(origin)) {
-        callback(null, true);
-      } else {
-        console.warn(`🚫 CORS blocked for origin: ${origin}`);
-        callback(new Error("Not allowed by CORS"));
-      }
-    },
+    origin: "*",
     methods: ["GET", "POST", "PUT", "DELETE"],
     credentials: true,
   })
@@ -38,7 +29,7 @@ app.use("/api/expenses", expenseRoutes);
 
 app.get("/", (req, res) => {
   res.json({
-    message: "Backend is running successfully",
+    message: "Backend is running successfully 🚀",
     routes: ["/api/expenses"],
   });
 });
